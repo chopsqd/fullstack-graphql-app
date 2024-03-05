@@ -11,6 +11,7 @@ export class PostResolver {
         try {
             return await em.find(Post, {})
         } catch (error) {
+            console.log("Error in 'posts' query: ", error.message)
             return error
         }
     }
@@ -23,6 +24,7 @@ export class PostResolver {
         try {
             return await em.findOne(Post, {id})
         } catch (error) {
+            console.log("Error in 'post' query: ", error.message)
             return error
         }
     }
@@ -37,6 +39,7 @@ export class PostResolver {
             await em.persistAndFlush(post)
             return post
         } catch (error) {
+            console.log("Error in 'createPost' mutation: ", error.message)
             return error
         }
     }
@@ -58,6 +61,7 @@ export class PostResolver {
             }
             return post
         } catch (error) {
+            console.log("Error in 'updatePost' mutation: ", error.message)
             return error
         }
     }
@@ -71,6 +75,7 @@ export class PostResolver {
             await em.nativeDelete(Post, {id})
             return true
         } catch (error) {
+            console.log("Error in 'deletePost' mutation: ", error.message)
             return error
         }
     }
