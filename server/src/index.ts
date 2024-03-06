@@ -1,15 +1,11 @@
 import 'reflect-metadata'
 import express from 'express'
-import redis from 'redis'
-import session from 'express-session'
 import {ApolloServer} from 'apollo-server-express'
 import {buildSchema} from 'type-graphql'
 import {MikroORM} from '@mikro-orm/postgresql'
 import mikroConfig from "./mikro-orm.config";
 import {PostResolver} from "./resolvers/post";
 import {UserResolver} from "./resolvers/user";
-import connectRedis from 'connect-redis'
-import {__prod__} from "./constants";
 import {AppContext} from "./types";
 
 const main = async () => {
@@ -28,27 +24,27 @@ const main = async () => {
 
     const app = express()
 
-    const RedisStore = connectRedis(session)
-    const redisClient = redis.createClient()
-
-    app.use(
-        session({
-            name: 'qid',
-            store: new RedisStore({
-                client: redisClient,
-                disableTouch: true
-            }),
-            cookie: {
-                maxAge: 1000 * 60 * 60 * 24,
-                httpOnly: true,
-                sameSite: 'lax', // csrf
-                secure: __prod__ // cookie only works in https
-            },
-            saveUninitialized: false,
-            secret: 'cat',
-            resave: false
-        })
-    )
+    // const RedisStore = connectRedis(session)
+    // const redisClient = redis.createClient()
+    //
+    // app.use(
+    //     session({
+    //         name: 'qid',
+    //         store: new RedisStore({
+    //             client: redisClient,
+    //             disableTouch: true
+    //         }),
+    //         cookie: {
+    //             maxAge: 1000 * 60 * 60 * 24,
+    //             httpOnly: true,
+    //             sameSite: 'lax', // csrf
+    //             secure: __prod__ // cookie only works in https
+    //         },
+    //         saveUninitialized: false,
+    //         secret: 'cat',
+    //         resave: false
+    //     })
+    // )
 
     apolloServer.applyMiddleware({app})
 
