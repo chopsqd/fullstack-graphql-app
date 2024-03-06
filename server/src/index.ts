@@ -1,12 +1,12 @@
 import 'reflect-metadata'
 import express from 'express'
+import cors from 'cors'
 import {ApolloServer} from 'apollo-server-express'
 import {buildSchema} from 'type-graphql'
 import {MikroORM} from '@mikro-orm/postgresql'
 import mikroConfig from "./mikro-orm.config";
 import {PostResolver} from "./resolvers/post";
 import {UserResolver} from "./resolvers/user";
-import {AppContext} from "./types";
 
 const main = async () => {
     const orm = await MikroORM.init(mikroConfig)
@@ -17,7 +17,7 @@ const main = async () => {
             resolvers: [PostResolver, UserResolver],
             validate: false
         }),
-        context: ({req, res}): AppContext => ({em: orm.em, req, res})
+        context: ({req, res}) => ({em: orm.em, req, res})
     })
 
     await apolloServer.start()
@@ -26,7 +26,12 @@ const main = async () => {
 
     // const RedisStore = connectRedis(session)
     // const redisClient = redis.createClient()
-    //
+
+        app.use(cors({
+            origin: 'http://localhost:3000',
+            credentials: true
+        }))
+
     // app.use(
     //     session({
     //         name: 'qid',
@@ -46,7 +51,10 @@ const main = async () => {
     //     })
     // )
 
-    apolloServer.applyMiddleware({app})
+    apolloServer.applyMiddleware({
+        app,
+        cors: false
+    })
 
     app.listen(4000, () => {
         console.log('Server started on localhost:4000')
