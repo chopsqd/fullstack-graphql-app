@@ -1,7 +1,8 @@
+import argon2 from 'argon2'
 import {Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver} from "type-graphql";
 import {AppContext} from "../types";
 import {User} from "../entities/User";
-import argon2 from 'argon2'
+import {EntityManager} from '@mikro-orm/postgresql'
 
 @InputType()
 class UsernamePasswordInput {
@@ -53,14 +54,14 @@ export class UserResolver {
     async register(
         @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
         @Ctx() {em, req}: AppContext
-    ) : Promise<UserResponse> {
+    ): Promise<UserResponse> {
         try {
             if (options.username.length <= 2) {
                 return {
                     errors: [
                         {
-                           field: 'username',
-                           message: 'Length must be greater than 2'
+                            field: 'username',
+                            message: 'Length must be greater than 2'
                         }
                     ]
                 }
@@ -77,16 +78,25 @@ export class UserResolver {
                 }
             }
 
-            const hashedPassword = await argon2.hash(options.password)
-            const user = em.create(User, {
-                username: options.username,
-                password: hashedPassword
-            })
-            await em.persistAndFlush(user)
+            const hashedPassword = await argon2.hash(options.password);
+            let user;
+
+            const result = await (em as EntityManager)
+                .createQueryBuilder(User)
+                .getKnexQuery()
+                .insert({
+                    username: options.username,
+                    password: hashedPassword,
+                    created_at: new Date(),
+                    updated_at: new Date()
+                })
+                .returning("*")
+
+            user = result[0]
 
             req.session.userId = user.id
 
-            return { user }
+            return {user}
         } catch (error) {
             if (error.code === '23505') {
                 return {
@@ -108,7 +118,7 @@ export class UserResolver {
     async login(
         @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
         @Ctx() {em, req}: AppContext
-    ) : Promise<UserResponse> {
+    ): Promise<UserResponse> {
         try {
             const user = await em.findOne(User, {username: options.username})
             if (!user) {
