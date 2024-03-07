@@ -8,7 +8,7 @@ import mikroConfig from "./mikro-orm.config";
 import {PostResolver} from "./resolvers/post";
 import {UserResolver} from "./resolvers/user";
 import session from "express-session";
-import {__prod__} from "./constants";
+import {__prod__, COOKIE_NAME} from "./constants";
 
 const main = async () => {
     const orm = await MikroORM.init(mikroConfig)
@@ -29,14 +29,18 @@ const main = async () => {
     // const RedisStore = connectRedis(session)
     // const redisClient = redis.createClient()
 
+    // Cross-Origin Resource Sharing
     app.use(cors({
-        origin: 'http://localhost:3000',
+        origin: [
+            'http://localhost:3000',
+            'https://studio.apollographql.com'
+        ],
         credentials: true
     }))
 
     app.use(
         session({
-            name: 'qid',
+            name: COOKIE_NAME,
 //         store: new RedisStore({
 //             client: redisClient,
 //             disableTouch: true

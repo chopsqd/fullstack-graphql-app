@@ -3,6 +3,7 @@ import {Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver} from 
 import {AppContext} from "../types";
 import {User} from "../entities/User";
 import {EntityManager} from '@mikro-orm/postgresql'
+import {COOKIE_NAME} from "../constants";
 
 @InputType()
 class UsernamePasswordInput {
@@ -153,5 +154,24 @@ export class UserResolver {
             console.log("Error in 'login' mutation: ", error.message)
             return error
         }
+    }
+
+    @Mutation(() => Boolean)
+    logout(
+        @Ctx() {req, res}: AppContext
+    ) {
+        return new Promise(resolve => {
+            req.session.destroy(error => {
+                res.clearCookie(COOKIE_NAME)
+
+                if (error) {
+                    console.log("Error in 'logout' mutation: ", error)
+                    resolve(false)
+                    return
+                }
+
+                resolve(true)
+            })
+        })
     }
 }
