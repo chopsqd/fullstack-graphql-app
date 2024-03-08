@@ -16,9 +16,12 @@
     "formik": "^2.4.5",
     "framer-motion": "^6.3.0",
     "graphql": "^16.8.1",
+    "isomorphic-unfetch": "^4.0.2",
     "next": "latest",
+    "next-urql": "^5.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-is": "^18.2.0",
     "urql": "^4.0.6"
   },
   "devDependencies": {
