@@ -1,26 +1,24 @@
 import 'reflect-metadata'
 import express from 'express'
-import Redis from 'ioredis'
 import cors from 'cors'
 import {ApolloServer} from 'apollo-server-express'
 import {buildSchema} from 'type-graphql'
-import {MikroORM} from '@mikro-orm/postgresql'
-import mikroConfig from "./mikro-orm.config";
+import typeConfig from "./configs/type-orm.config";
 import {PostResolver} from "./resolvers/post";
 import {UserResolver} from "./resolvers/user";
 import session from "express-session";
 import {__prod__, COOKIE_NAME} from "./constants";
+import {createConnection} from 'typeorm'
 
 const main = async () => {
-    const orm = await MikroORM.init(mikroConfig)
-    await orm.getMigrator().up()
+    const connection = await createConnection(typeConfig)
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [PostResolver, UserResolver],
             validate: false
         }),
-        context: ({req, res}) => ({em: orm.em, req, res, redis: null})
+        context: ({req, res}) => ({req, res, redis: null})
     })
 
     await apolloServer.start()
