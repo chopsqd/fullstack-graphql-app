@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import express from 'express'
+import Redis from 'ioredis'
 import cors from 'cors'
 import {ApolloServer} from 'apollo-server-express'
 import {buildSchema} from 'type-graphql'
@@ -19,7 +20,7 @@ const main = async () => {
             resolvers: [PostResolver, UserResolver],
             validate: false
         }),
-        context: ({req, res}) => ({em: orm.em, req, res})
+        context: ({req, res}) => ({em: orm.em, req, res, redis: null})
     })
 
     await apolloServer.start()
@@ -27,7 +28,7 @@ const main = async () => {
     const app = express()
 
     // const RedisStore = connectRedis(session)
-    // const redisClient = redis.createClient()
+    // const redis = new Redis()
 
     // Cross-Origin Resource Sharing
     app.use(cors({
@@ -42,7 +43,7 @@ const main = async () => {
         session({
             name: COOKIE_NAME,
 //         store: new RedisStore({
-//             client: redisClient,
+//             client: redis,
 //             disableTouch: true
 //         }),
             cookie: {

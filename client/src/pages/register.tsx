@@ -47,6 +47,7 @@ const Register = () => {
                                 name={"email"}
                                 placeholder={"email"}
                                 label={"Email"}
+                                type={"email"}
                             />
                         </Box>
 

@@ -1,11 +1,13 @@
 import argon2 from 'argon2'
 import {Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver} from "type-graphql";
-import {AppContext} from "../types";
+import {AppContext} from "../types/common-types";
 import {User} from "../entities/User";
 import {EntityManager} from '@mikro-orm/postgresql'
-import {COOKIE_NAME} from "../constants";
+import {COOKIE_NAME, FORGET_PASSWORD_PREFIX} from "../constants";
 import {UsernamePasswordInput} from "../types/UsernamePasswordInput";
 import {validateRegister} from "../utils/validateRegister";
+import {sendEmail} from "../utils/sendEmail";
+import {v4} from "uuid";
 
 @ObjectType()
 class FieldError {
@@ -27,13 +29,88 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Mutation(() => UserResponse)
+    async changePassword(
+        @Arg('token') token: string,
+        @Arg('newPassword') newPassword: string,
+        @Ctx() {em, redis, req}: AppContext
+    ): Promise<UserResponse> {
+        try {
+            if (newPassword.length <= 5) {
+                return {
+                    errors: [
+                        {
+                            field: 'newPassword',
+                            message: 'Length must be greater than 5'
+                        }
+                    ]
+                }
+            }
+
+            const key = FORGET_PASSWORD_PREFIX + token
+            const userId = await redis.get(key)
+            if (!userId) {
+                return {
+                    errors: [
+                        {
+                            field: 'token',
+                            message: 'Expired token'
+                        }
+                    ]
+                }
+            }
+
+            const user = await em.findOne(User, {id: parseInt(userId)})
+            if (!user) {
+                return {
+                    errors: [
+                        {
+                            field: 'token',
+                            message: 'User not found'
+                        }
+                    ]
+                }
+            }
+
+            user.password = await argon2.hash(newPassword)
+            await em.persistAndFlush(user)
+
+            await redis.del(key)
+
+            req.session.userId = user.id
+
+            return {user}
+        } catch (error) {
+            console.log("Error in 'changePassword' mutation: ", error.message)
+            return error
+        }
+    }
+
     @Mutation(() => Boolean)
     async forgotPassword(
         @Arg('email') email: string,
-        @Ctx() {em}: AppContext
-    ) {
+        @Ctx() {em, redis}: AppContext
+    ): Promise<boolean> {
         try {
-            // const person = await em.findOne(User, {email})
+            const user = await em.findOne(User, {email})
+            if (!user) {
+                return true
+            }
+
+            const token = v4()
+
+            await redis.set(
+                FORGET_PASSWORD_PREFIX + token,
+                user.id,
+                'ex',
+                1000 * 60 * 60 * 24
+            )
+
+            await sendEmail(
+                email,
+                `<a href="http://localhost:3000/change-password/${token}">Reset password</a>`
+            )
+
             return true
         } catch (error) {
             console.log("Error in 'forgotPassword' query: ", error.message)
@@ -66,7 +143,7 @@ export class UserResolver {
         try {
             const errors = validateRegister(options)
             if (errors) {
-                return { errors }
+                return {errors}
             }
 
             const hashedPassword = await argon2.hash(options.password);
@@ -156,7 +233,7 @@ export class UserResolver {
     @Mutation(() => Boolean)
     logout(
         @Ctx() {req, res}: AppContext
-    ) {
+    ): Promise<boolean> {
         return new Promise(resolve => {
             req.session.destroy(error => {
                 res.clearCookie(COOKIE_NAME)
