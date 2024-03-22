@@ -10,6 +10,8 @@ const NavBar = () => {
         pause: isServer()
     })
 
+    // TODO
+
     // if (fetching) {
     //     return <Box>
     //         <Spinner />
@@ -29,7 +31,7 @@ const NavBar = () => {
     //     </Flex>
     // }
 
-    return <Flex bg="lightsalmon" p="4" gap={5}>
+    return <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"} gap={5}>
         <Box ml="auto">Chopsqd</Box>
         <Button
             variant="link"
@@ -41,7 +43,7 @@ const NavBar = () => {
     </Flex>
 
     // return (
-    //     <Flex bg="lightsalmon" p="4">
+    //     <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"}>
     //         <Box ml="auto">
     //             <NextLink href={'/login'}>
     //                 <Link mr="2">Login</Link>
