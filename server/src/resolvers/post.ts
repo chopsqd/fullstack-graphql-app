@@ -135,9 +135,6 @@ export class PostResolver {
         try {
             const {userId} = req.session
 
-            // await Updoot.insert({userId, postId, value})
-            // await Post.update({id: postId}, {})
-
             await getConnection().query(`
                 START TRANSACTION;
                 
