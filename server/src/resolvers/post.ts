@@ -16,6 +16,7 @@ import {AppContext} from "../types/common-types";
 import {isAuth} from "../middleware/isAuth";
 import {PostInput} from "../types/PostInput";
 import {getConnection} from "typeorm";
+import {Updoot} from "../entities/Updoot";
 
 @ObjectType()
 class PaginatedPosts {
@@ -120,6 +121,39 @@ export class PostResolver {
             return true
         } catch (error) {
             console.log("Error in 'deletePost' mutation: ", error.message)
+            return error
+        }
+    }
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async vote(
+        @Arg('postId', () => Int) postId: number,
+        @Arg('value', () => Int) value: number,
+        @Ctx() {req}: AppContext
+    ): Promise<boolean> {
+        try {
+            const {userId} = req.session
+
+            // await Updoot.insert({userId, postId, value})
+            // await Post.update({id: postId}, {})
+
+            await getConnection().query(`
+                START TRANSACTION;
+                
+                INSERT INTO updoot ("userId", "postId", value)
+                VALUES (${userId}, ${postId}, ${value});
+                
+                UPDATE post
+                SET points = points + ${value}
+                WHERE id = ${postId};
+                
+                COMMIT;
+            `)
+
+            return true
+        } catch (error) {
+            console.log("Error in 'vote' mutation: ", error.message)
             return error
         }
     }

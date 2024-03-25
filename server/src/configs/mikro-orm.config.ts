@@ -5,6 +5,7 @@ import path from "path"
 import {PostgreSqlDriver} from "@mikro-orm/postgresql";
 import {Migrator} from "@mikro-orm/migrations";
 import {User} from "../entities/User";
+import {Updoot} from "../entities/Updoot";
 
 export default {
     migrations: {
@@ -15,7 +16,7 @@ export default {
     user: 'postgres',
     password: '12345',
     driver: PostgreSqlDriver,
-    entities: [Post, User],
+    entities: [Post, User, Updoot],
     dbName: 'postgres',
     extensions: [Migrator],
     debug: !__prod__

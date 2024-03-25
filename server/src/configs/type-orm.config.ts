@@ -1,6 +1,7 @@
 import path from "path";
 import {Post} from "../entities/Post";
 import {User} from "../entities/User";
+import {Updoot} from "../entities/Updoot";
 
 export default {
     type: 'postgres',
@@ -10,5 +11,5 @@ export default {
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "../migrations/*")],
-    entities: [Post, User]
+    entities: [Post, User, Updoot]
 }
