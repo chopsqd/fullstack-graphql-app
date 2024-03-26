@@ -135,18 +135,49 @@ export class PostResolver {
         try {
             const {userId} = req.session
 
-            await getConnection().query(`
-                START TRANSACTION;
-                
-                INSERT INTO updoot ("userId", "postId", value)
-                VALUES (${userId}, ${postId}, ${value});
-                
-                UPDATE post
-                SET points = points + ${value}
-                WHERE id = ${postId};
-                
-                COMMIT;
-            `)
+            const updoot = await Updoot.findOne({where: {postId, userId}})
+
+            if (updoot && updoot.value !== value) {
+                await getConnection().transaction(async entityManager => {
+                    await entityManager.query(`
+                        UPDATE updoot
+                        SET value = $1
+                        WHERE "postId" = $2 AND "userId" = $3
+                    `, [value, postId, userId])
+
+                    await entityManager.query(`
+                        UPDATE post
+                        SET points = points + $1
+                        WHERE id = $2
+                    `, [2 * value, postId])
+                })
+            } else if (!updoot) {
+                await getConnection().transaction(async entityManager => {
+                    // await entityManager.query(`
+                    //     INSERT INTO updoot ("userId", "postId", value)
+                    //     VALUES (${userId}, ${postId}, ${value})
+                    // `)
+
+                    // await entityManager.query(`
+                    //     UPDATE post
+                    //     SET points = points + ${value}
+                    //     WHERE id = ${postId}
+                    // `)
+
+                    await entityManager.query(`
+                        INSERT INTO updoot ("userId", "postId", value)
+                        VALUES ($1, $2, $3)
+                    `, [userId, postId, value])
+
+                    await entityManager.query(`
+                        UPDATE post
+                        SET points = points + $1
+                        WHERE id = $2
+                    `, [value, postId])
+                })
+            } else {
+
+            }
 
             return true
         } catch (error) {
