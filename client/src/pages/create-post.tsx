@@ -7,13 +7,13 @@ import {useRouter} from "next/router";
 import {createUrqlClient} from "../utils/createUrqlClient";
 import {withUrqlClient} from "next-urql";
 import Layout from "../components/Layout";
+import {useIsAuth} from "../hooks/useIsAuth";
 
 const CreatePost = () => {
     const router = useRouter()
     const [, createPost] = useCreatePostMutation()
 
-    //TODO
-    // useIsAuth()
+    useIsAuth()
 
     return (
         <Layout variant={"small"}>

@@ -71,7 +71,7 @@ export class PostResolver {
         @Arg('id', () => Int) id: number
     ): Promise<Post | null> {
         try {
-            return await Post.findOne({where: {id}})
+            return await Post.findOne({where: {id}, relations: ["creator"]})
         } catch (error) {
             console.log("Error in 'post' query: ", error.message)
             return error

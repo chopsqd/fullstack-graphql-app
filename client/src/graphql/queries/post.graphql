@@ -1,0 +1,6 @@
+query Post($id: Int!) {
+    post(id: $id) {
+        text
+        ...PostSnippet
+    }
+}

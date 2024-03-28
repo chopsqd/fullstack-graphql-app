@@ -10,50 +10,37 @@ const NavBar = () => {
         pause: isServer()
     })
 
-    // TODO
+    if (fetching) {
+        return <Box>
+            <Spinner />
+        </Box>
+    }
 
-    // if (fetching) {
-    //     return <Box>
-    //         <Spinner />
-    //     </Box>
-    // }
-    //
-    // if (data?.me) {
-    //     return <Flex bg="lightsalmon" p="4" gap={5}>
-    //         <Box>{data.me.username}</Box>
-    //         <Button
-    //             variant="link"
-    //             onClick={logout}
-    //             isLoading={logoutFetching}
-    //         >
-    //             Logout
-    //         </Button>
-    //     </Flex>
-    // }
+    if (data?.me) {
+        return <Flex bg="lightsalmon" p="4" gap={5}>
+            <Box>{data.me.username}</Box>
+            <Button
+                variant="link"
+                onClick={logout}
+                isLoading={logoutFetching}
+            >
+                Logout
+            </Button>
+        </Flex>
+    }
 
-    return <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"} gap={5}>
-        <Box ml="auto">Chopsqd</Box>
-        <Button
-            variant="link"
-            onClick={logout}
-            isLoading={logoutFetching}
-        >
-            Logout
-        </Button>
-    </Flex>
-
-    // return (
-    //     <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"}>
-    //         <Box ml="auto">
-    //             <NextLink href={'/login'}>
-    //                 <Link mr="2">Login</Link>
-    //             </NextLink>
-    //             <NextLink href={'/register'}>
-    //                 <Link>Register</Link>
-    //             </NextLink>
-    //         </Box>
-    //     </Flex>
-    // );
+    return (
+        <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"}>
+            <Box ml="auto">
+                <NextLink href={'/login'}>
+                    <Link mr="2">Login</Link>
+                </NextLink>
+                <NextLink href={'/register'}>
+                    <Link>Register</Link>
+                </NextLink>
+            </Box>
+        </Flex>
+    );
 };
 
 export default NavBar;
