@@ -17,7 +17,7 @@ const NavBar = () => {
     }
 
     if (data?.me) {
-        return <Flex bg="lightsalmon" p="4" gap={5}>
+        return <Flex bg="lightsalmon" p="4" gap={5} align={"center"}>
             <Box>{data.me.username}</Box>
             <Button
                 variant="link"
@@ -30,7 +30,7 @@ const NavBar = () => {
     }
 
     return (
-        <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"}>
+        <Flex zIndex={1} bg="lightsalmon" p="4" top="0" position={"sticky"} align={"center"}>
             <Box ml="auto">
                 <NextLink href={'/login'}>
                     <Link mr="2">Login</Link>
