@@ -1,24 +1,17 @@
 import React from 'react';
 import {withUrqlClient} from "next-urql";
 import {createUrqlClient} from "../../utils/createUrqlClient";
-import {useRouter} from "next/router";
-import {usePostQuery} from "../../generated/graphql";
 import Layout from "../../components/Layout";
 import {Box, Heading, Spinner} from "@chakra-ui/react";
+import {useGetPostFromUrl} from "../../utils/useGetPostFromUrl";
+import PostButtons from "../../components/PostButtons";
 
 const Post = () => {
-    const router = useRouter()
-    const postId = typeof router.query.id === "string" ? parseInt(router.query.id) : -1
-    const [{data, error, fetching}] = usePostQuery({
-        pause: postId === -1,
-        variables: {
-            id: postId
-        }
-    })
+    const [{data, error, fetching}] = useGetPostFromUrl()
 
     if (fetching) {
         return <Box>
-            <Spinner />
+            <Spinner/>
         </Box>
     }
 
@@ -35,7 +28,11 @@ const Post = () => {
     return (
         <Layout>
             <Heading mb={4}>{data.post.title}</Heading>
-            {data.post.text}
+            <Box mb={4}>{data.post.text}</Box>
+            <PostButtons
+                id={data.post.id}
+                creatorId={data.post.creator.id}
+            />
         </Layout>
     );
 };

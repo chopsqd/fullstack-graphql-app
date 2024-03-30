@@ -1,20 +1,19 @@
 import {withUrqlClient} from "next-urql";
 import {createUrqlClient} from "../utils/createUrqlClient";
-import {useDeletePostMutation, usePostsQuery} from "../generated/graphql";
-import {Box, Button, Flex, Heading, IconButton, Link, Stack, Text} from "@chakra-ui/react";
+import {usePostsQuery} from "../generated/graphql";
+import {Box, Button, Flex, Heading, Link, Stack, Text} from "@chakra-ui/react";
 import Layout from "../components/Layout";
 import NextLink from "next/link";
 import {useState} from "react";
 import UpdootSection from "../components/UpdootSection";
-import {DeleteIcon} from "@chakra-ui/icons";
+import PostButtons from "../components/PostButtons";
 
 const Index = () => {
+    const [{data, fetching}] = usePostsQuery({variables})
     const [variables, setVariables] = useState({
         limit: 10,
         cursor: null as null | string
     })
-    const [, deletePost] = useDeletePostMutation()
-    const [{data, fetching}] = usePostsQuery({variables})
 
     if (!fetching && !data) {
         return <Box>You got query failed for some reason</Box>
@@ -45,15 +44,12 @@ const Index = () => {
                                     <Text>posted by <b>{post.creator.username}</b></Text>
                                     <Flex align={"center"} justifyContent={"space-between"}>
                                         <Text flex={1} mt={4}>{post.textSnippet}</Text>
-                                        <IconButton
-                                            ml={"auto"}
-                                            icon={<DeleteIcon/>}
-                                            colorScheme={"red"}
-                                            aria-label={"Delete post"}
-                                            onClick={() => {
-                                                deletePost({ id: post.id })
-                                            }}
-                                        />
+                                        <Box ml={"auto"}>
+                                            <PostButtons
+                                                id={post.id}
+                                                creatorId={post.creator.id}
+                                            />
+                                        </Box>
                                     </Flex>
                                 </Box>
                             </Flex>
