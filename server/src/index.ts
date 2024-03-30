@@ -9,24 +9,34 @@ import {UserResolver} from "./resolvers/user";
 import session from "express-session";
 import {__prod__, COOKIE_NAME} from "./constants";
 import {createConnection} from 'typeorm'
+import {newUserLoader} from "./utils/newUserLoader";
+import connectRedis from 'connect-redis'
+import {Redis} from "ioredis";
+import {newUpdootLoader} from "./utils/newUpdootLoader";
 
 const main = async () => {
-    const connection = await createConnection(typeConfig)
+    await createConnection(typeConfig)
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [PostResolver, UserResolver],
             validate: false
         }),
-        context: ({req, res}) => ({req, res, redis: null})
+        context: ({req, res}) => ({
+            req,
+            res,
+            redis: null,
+            userLoader: newUserLoader(),
+            updootLoader: newUpdootLoader()
+        })
     })
 
     await apolloServer.start()
 
     const app = express()
 
-    // const RedisStore = connectRedis(session)
-    // const redis = new Redis()
+    const RedisStore = connectRedis(session)
+    const redis = new Redis()
 
     // Cross-Origin Resource Sharing
     app.use(cors({
@@ -40,10 +50,10 @@ const main = async () => {
     app.use(
         session({
             name: COOKIE_NAME,
-//         store: new RedisStore({
-//             client: redis,
-//             disableTouch: true
-//         }),
+            store: new RedisStore({
+                client: redis,
+                disableTouch: true
+            }),
             cookie: {
                 maxAge: 1000 * 60 * 60 * 24,
                 httpOnly: true,

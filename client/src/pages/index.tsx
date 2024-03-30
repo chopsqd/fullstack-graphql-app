@@ -9,14 +9,17 @@ import UpdootSection from "../components/UpdootSection";
 import PostButtons from "../components/PostButtons";
 
 const Index = () => {
-    const [{data, fetching}] = usePostsQuery({variables})
     const [variables, setVariables] = useState({
         limit: 10,
         cursor: null as null | string
     })
+    const [{data, error, fetching}] = usePostsQuery({variables})
 
     if (!fetching && !data) {
-        return <Box>You got query failed for some reason</Box>
+        return <Box>
+            <div>You got query failed for some reason</div>
+            <div>{error?.message}</div>
+        </Box>
     }
 
     return (

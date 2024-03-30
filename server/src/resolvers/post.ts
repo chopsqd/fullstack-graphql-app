@@ -17,6 +17,7 @@ import {isAuth} from "../middleware/isAuth";
 import {PostInput} from "../types/PostInput";
 import {getConnection} from "typeorm";
 import {Updoot} from "../entities/Updoot";
+import {User} from "../entities/User";
 
 @ObjectType()
 class PaginatedPosts {
@@ -34,6 +35,42 @@ export class PostResolver {
         @Root() root: Post
     ): string {
         return root.text.slice(0, 50)
+    }
+
+    @FieldResolver(() => User)
+    async creator(
+        @Root() post: Post,
+        @Ctx() {userLoader}: AppContext
+    ): Promise<User> {
+        try {
+            // return User.findOne({where: {id: post.creatorId}})
+            return await userLoader.load(post.creatorId)
+        } catch (error) {
+            console.log("Error in 'creator' field resolver: ", error.message)
+            return error
+        }
+    }
+
+    @FieldResolver(() => Int, {nullable: true})
+    async voteStatus(
+        @Root() post: Post,
+        @Ctx() {updootLoader, req}: AppContext
+    ): Promise<number | null> {
+        try {
+            if (!req.session.userId) {
+                return null
+            }
+
+            const updoot = await updootLoader.load({
+                postId: post.id,
+                userId: req.session.userId
+            })
+
+            return updoot ? updoot.value : null
+        } catch (error) {
+            console.log("Error in 'voteStatus' field resolver: ", error.message)
+            return error
+        }
     }
 
     @Query(() => PaginatedPosts)
@@ -71,7 +108,7 @@ export class PostResolver {
         @Arg('id', () => Int) id: number
     ): Promise<Post | null> {
         try {
-            return await Post.findOne({where: {id}, relations: ["creator"]})
+            return await Post.findOne({where: {id}})
         } catch (error) {
             console.log("Error in 'post' query: ", error.message)
             return error
