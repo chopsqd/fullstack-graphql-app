@@ -162,7 +162,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                                     }
                                 }
                             )
-                            
+
                             invalidateAllPosts(cache)
                         },
 

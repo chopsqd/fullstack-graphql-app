@@ -1,12 +1,12 @@
 import {Field, Int, ObjectType} from "type-graphql";
 import {
-    Entity,
-    PrimaryGeneratedColumn,
+    BaseEntity,
     Column,
     CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    OneToMany
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
 } from "typeorm";
 import {Post} from "./Post";
 import {Updoot} from "./Updoot";
