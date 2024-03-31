@@ -1,7 +1,46 @@
 import React, {useState} from 'react';
 import {Flex, IconButton} from "@chakra-ui/react";
 import {ChevronDownIcon, ChevronUpIcon} from "@chakra-ui/icons";
-import {PostSnippetFragment, useVoteMutation, VoteMutationVariables} from "../generated/graphql";
+import {PostSnippetFragment, useVoteMutation, VoteMutation} from "../generated/graphql";
+import gql from "graphql-tag";
+import {ApolloCache} from "@apollo/client";
+
+interface IFragmentData {
+    id: number
+    points: number
+    voteStatus: number | null
+}
+
+const updateAfterVote = (value: number, postId: number, cache: ApolloCache<VoteMutation>) => {
+    const data = cache.readFragment<IFragmentData>({
+        id: "Post:" + postId,
+        fragment: gql`
+            fragment _ on Post {
+                id
+                points
+                voteStatus
+            }
+        `
+    });
+
+    if (data) {
+        if (data.voteStatus === value) {
+            return
+        }
+
+        const newPoints = (data.points as number) + (!data.voteStatus ? 1 : 2) * value
+        cache.writeFragment({
+            id: "Post:" + postId,
+            fragment: gql`
+                fragment __ on Post {
+                    points
+                    voteStatus
+                }
+            `,
+            data: {points: newPoints, voteStatus: value}
+        });
+    }
+};
 
 interface IUpdootSectionProps {
     post: PostSnippetFragment
@@ -9,7 +48,7 @@ interface IUpdootSectionProps {
 
 const UpdootSection: React.FC<IUpdootSectionProps> = ({post}) => {
     const [loadingState, setLoadingState] = useState<"updoot-loading" | "downdoot-loading" | "not-loading">("not-loading");
-    const [, vote] = useVoteMutation()
+    const [vote] = useVoteMutation()
 
     return (
         <Flex
@@ -29,7 +68,13 @@ const UpdootSection: React.FC<IUpdootSectionProps> = ({post}) => {
                         return
                     }
                     setLoadingState("updoot-loading")
-                    await vote({postId: post.id, value: 1})
+                    await vote({
+                        variables: {
+                            postId: post.id,
+                            value: 1
+                        },
+                        update: (cache) => updateAfterVote(1, post.id, cache)
+                    })
                     setLoadingState("not-loading")
                 }}
             />
@@ -45,7 +90,13 @@ const UpdootSection: React.FC<IUpdootSectionProps> = ({post}) => {
                         return
                     }
                     setLoadingState("downdoot-loading")
-                    await vote({postId: post.id, value: -1})
+                    await vote({
+                        variables: {
+                            postId: post.id,
+                            value: -1
+                        },
+                        update: (cache) => updateAfterVote(-1, post.id, cache)
+                    })
                     setLoadingState("not-loading")
                 }}
             />

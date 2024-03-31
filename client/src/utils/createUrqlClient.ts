@@ -1,5 +1,5 @@
-import {fetchExchange, Exchange, stringifyVariables} from "urql";
-import {cacheExchange, Resolver, Cache} from "@urql/exchange-graphcache";
+import {Exchange, fetchExchange, stringifyVariables} from "urql";
+import {Cache, cacheExchange, Resolver} from "@urql/exchange-graphcache";
 import {
     DeletePostMutationVariables,
     LoginMutation,
@@ -28,7 +28,7 @@ const errorExchange: Exchange = ({forward}) => (ops$) => {
 
 const cursorPagination = (): Resolver => {
     return (_parent, fieldArgs, cache, info) => {
-        const { parentKey: entityKey, fieldName } = info;
+        const {parentKey: entityKey, fieldName} = info;
 
         const allFields = cache.inspectFields(entityKey);
         const fieldInfos = allFields.filter(info => info.fieldName === fieldName);
@@ -85,8 +85,8 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
         url: 'http://localhost:4000/graphql',
         fetchOptions: {
             credentials: "include" as const,
-            headers:  cookie
-                ? { cookie }
+            headers: cookie
+                ? {cookie}
                 : undefined
         },
         exchanges: [

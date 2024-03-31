@@ -1,20 +1,22 @@
 import React from 'react';
-import {Box, Link, Flex, Spinner, Button} from "@chakra-ui/react";
+import {Box, Button, Flex, Link, Spinner} from "@chakra-ui/react";
 import NextLink from "next/link";
 import {useLogoutMutation, useMeQuery} from "../generated/graphql";
 import {isServer} from "../utils/isServer";
 import {useRouter} from "next/router";
+import {useApolloClient} from "@apollo/client";
 
 const NavBar = () => {
     const router = useRouter()
-    const [{fetching: logoutFetching}, logout] = useLogoutMutation()
-    const [{data, fetching}] = useMeQuery({
-        pause: isServer()
+    const apolloClient = useApolloClient()
+    const [logout, {loading: logoutFetching}] = useLogoutMutation()
+    const {data, loading} = useMeQuery({
+        skip: isServer()
     })
 
-    if (fetching) {
+    if (loading) {
         return <Box>
-            <Spinner />
+            <Spinner/>
         </Box>
     }
 
@@ -25,7 +27,7 @@ const NavBar = () => {
                 variant="link"
                 onClick={async () => {
                     await logout()
-                    router.reload()
+                    await apolloClient.resetStore()
                 }}
                 isLoading={logoutFetching}
             >

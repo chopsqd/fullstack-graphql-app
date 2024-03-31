@@ -4,16 +4,15 @@ import {toErrorMap} from "../../utils/toErrorMap";
 import {Button, Flex, Link, Text} from "@chakra-ui/react";
 import InputField from "../../components/InputField";
 import Wrapper from "../../components/Wrapper";
-import {useChangePasswordMutation} from "../../generated/graphql";
+import {MeDocument, MeQuery, useChangePasswordMutation} from "../../generated/graphql";
 import {useRouter} from "next/router";
-import {createUrqlClient} from "../../utils/createUrqlClient";
-import {withUrqlClient} from "next-urql";
 import NextLink from "next/link";
+import {withApollo} from "../../utils/withApollo";
 
 const ChangePassword = () => {
     const router = useRouter()
     const [tokenError, setTokenError] = useState('')
-    const [, changePassword] = useChangePasswordMutation()
+    const [changePassword] = useChangePasswordMutation()
 
     return (
         <Wrapper variant={"small"}>
@@ -21,19 +20,31 @@ const ChangePassword = () => {
                 initialValues={{newPassword: ''}}
                 onSubmit={async (values, {setErrors}) => {
                     const response = await changePassword({
-                        newPassword: values.newPassword,
-                        token: typeof router.query.token === "string"
-                            ? router.query.token
-                            : ""
+                        variables: {
+                            newPassword: values.newPassword,
+                            token: typeof router.query.token === "string"
+                                ? router.query.token
+                                : ""
+                        },
+                        update: (cache, {data}) => {
+                            cache.writeQuery<MeQuery>({
+                                query: MeDocument,
+                                data: {
+                                    __typename: "Query",
+                                    me: data?.changePassword.user
+                                }
+                            })
+                        }
                     })
+
                     if (response.data?.changePassword.errors) {
                         const errorMap = toErrorMap(response.data.changePassword.errors)
-                        if ('token' in errorMap) {
+                        if ("token" in errorMap) {
                             setTokenError(errorMap.token)
                         }
                         setErrors(errorMap)
                     } else if (response.data?.changePassword.user) {
-                        router.push('/')
+                        router.push("/")
                     }
                 }}
             >
@@ -71,4 +82,4 @@ const ChangePassword = () => {
     );
 };
 
-export default withUrqlClient(createUrqlClient)(ChangePassword)
+export default withApollo({ssr: false})(ChangePassword)
